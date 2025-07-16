@@ -14,10 +14,15 @@ class GitHubAPI {
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
         curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            'Authorization: token ' . $this->token,
-            'User-Agent: FileManager-App',
-            'Accept: application/vnd.github.v3+json',
+            'Authorization: Bearer ' . $this->token,
+            'User-Agent: FileManager-App/1.0',
+            'Accept: application/vnd.github+json',
+            'X-GitHub-Api-Version: 2022-11-28',
             'Content-Type: application/json'
         ]);
 
@@ -28,15 +33,28 @@ class GitHubAPI {
             }
         } elseif ($method === 'DELETE') {
             curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'DELETE');
+            if ($data) {
+                curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+            }
         }
 
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlError = curl_error($ch);
         curl_close($ch);
+
+        $responseData = json_decode($response, true);
+
+        // Log errors for debugging
+        if ($httpCode >= 400 || $curlError) {
+            error_log("GitHub API Error - URL: $url, Method: $method, HTTP Code: $httpCode, cURL Error: $curlError, Response: " . $response);
+        }
 
         return [
             'code' => $httpCode,
-            'data' => json_decode($response, true)
+            'data' => $responseData,
+            'curl_error' => $curlError,
+            'raw_response' => $response
         ];
     }
 
@@ -46,17 +64,34 @@ class GitHubAPI {
             'name' => $repoName,
             'description' => $description ?: 'File Manager Repository for ' . $repoName,
             'private' => false,
-            'auto_init' => true
+            'auto_init' => true,
+            'has_issues' => true,
+            'has_projects' => false,
+            'has_wiki' => false
         ];
 
         $response = $this->makeRequest($url, 'POST', $data);
         
-        if ($response['code'] === 201) {
-            // Create initial release
-            $this->createRelease($repoName, 'v1.0.0', 'Initial Release');
+        // Log the response for debugging
+        error_log("GitHub Create Repo Response - Code: " . $response['code'] . ", Data: " . json_encode($response['data']));
+        
+        if ($response['code'] === 201 && isset($response['data']['html_url'])) {
+            // Create initial release (with delay to ensure repo is ready)
+            sleep(2);
+            $release_response = $this->createRelease($repoName, 'v1.0.0', 'Initial Release');
+            
+            // Return repository data even if release fails
             return $response['data'];
         }
-        return false;
+        
+        // Return detailed error information
+        return [
+            'error' => true,
+            'code' => $response['code'],
+            'message' => $response['data']['message'] ?? 'Unknown error',
+            'curl_error' => $response['curl_error'] ?? null,
+            'data' => $response['data']
+        ];
     }
 
     public function createRelease($repoName, $tagName, $releaseName, $description = '') {

@@ -67,15 +67,21 @@ if ($user->register()) {
     $stmt->execute();
     $admin_settings = $stmt->fetch(PDO::FETCH_ASSOC);
     
-    if ($admin_settings) {
+    $github_message = '';
+    if ($admin_settings && !empty($admin_settings['github_token']) && !empty($admin_settings['github_username'])) {
         // Create GitHub repository
         $github = new GitHubAPI($admin_settings['github_token'], $admin_settings['github_username']);
         $repo_name = $user->github_repo;
         
         $repo_result = $github->createRepository($repo_name, 'File Manager Repository for ' . $user->username);
         
-        if ($repo_result) {
-            // Save repo info to database
+        if (isset($repo_result['error']) && $repo_result['error']) {
+            // GitHub repo creation failed - log error but continue registration
+            $error_msg = $repo_result['message'] ?? 'Unknown GitHub API error';
+            error_log("GitHub repo creation failed for user {$user->username}: " . json_encode($repo_result));
+            $github_message = " (Note: GitHub repository creation failed: {$error_msg})";
+        } elseif (isset($repo_result['html_url'])) {
+            // Success - save repo info to database
             $query = "INSERT INTO github_repos (user_id, repo_name, repo_url, release_url) 
                      VALUES (:user_id, :repo_name, :repo_url, :release_url)";
             $stmt = $db->prepare($query);
@@ -84,12 +90,17 @@ if ($user->register()) {
             $stmt->bindParam(':repo_url', $repo_result['html_url']);
             $stmt->bindParam(':release_url', $repo_result['html_url'] . '/releases');
             $stmt->execute();
+            $github_message = " GitHub repository '{$repo_name}' created successfully!";
+        } else {
+            $github_message = " (GitHub repository creation encountered an issue)";
         }
+    } else {
+        $github_message = " (GitHub settings not configured - contact admin)";
     }
     
     echo json_encode([
         'success' => true, 
-        'message' => 'Registration successful! GitHub repository created: ' . $user->github_repo
+        'message' => 'Registration successful!' . $github_message
     ]);
 } else {
     echo json_encode(['success' => false, 'message' => 'Registration failed']);

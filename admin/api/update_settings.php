@@ -25,9 +25,23 @@ $github_token = trim($_POST['github_token']);
 $github_username = trim($_POST['github_username']);
 
 // Validate inputs
-if (empty($github_token) || empty($github_username)) {
-    echo json_encode(['success' => false, 'message' => 'GitHub token and username cannot be empty']);
+if (empty($github_username)) {
+    echo json_encode(['success' => false, 'message' => 'GitHub username cannot be empty']);
     exit();
+}
+
+// If token is empty, keep the existing token
+if (empty($github_token)) {
+    $query = "SELECT github_token FROM admin_settings ORDER BY id DESC LIMIT 1";
+    $stmt = $db->prepare($query);
+    $stmt->execute();
+    $existing = $stmt->fetch(PDO::FETCH_ASSOC);
+    $github_token = $existing['github_token'] ?? '';
+    
+    if (empty($github_token)) {
+        echo json_encode(['success' => false, 'message' => 'GitHub token is required for first-time setup']);
+        exit();
+    }
 }
 
 try {
