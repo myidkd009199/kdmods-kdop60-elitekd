@@ -1,0 +1,8 @@
+# Deny direct access to uploads
+Options -Indexes
+deny from all
+
+# Only allow specific file types if needed
+<FilesMatch "\.(jpg|jpeg|png|gif|pdf|doc|docx|txt|zip)$">
+    allow from all
+</FilesMatch>
