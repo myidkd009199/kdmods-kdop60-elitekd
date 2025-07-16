@@ -1,0 +1,29 @@
+{
+    "name": "filemanager/pro",
+    "description": "A secure, modern file management system with GitHub integration",
+    "type": "project",
+    "keywords": ["file-manager", "github", "php", "mysql", "upload"],
+    "license": "MIT",
+    "require": {
+        "php": ">=7.4",
+        "ext-pdo": "*",
+        "ext-pdo_mysql": "*",
+        "ext-curl": "*",
+        "ext-json": "*",
+        "ext-mbstring": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "FileManager\\": "classes/"
+        }
+    },
+    "minimum-stability": "stable",
+    "config": {
+        "optimize-autoloader": true
+    },
+    "scripts": {
+        "post-install-cmd": [
+            "php install.php"
+        ]
+    }
+}
