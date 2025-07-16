@@ -49,7 +49,7 @@ CREATE TABLE admin_settings (
 
 -- Insert default admin user (password: admin123)
 INSERT INTO users (username, email, password, role) VALUES 
-('admin', 'admin@filemanager.com', '$2y$10$K8mEG.8QNh5kF5z1F5z1F5z1F5z1F5z1F5z1F5z1F5z1F5z1F5z1Fux2', 'admin');
+('admin', 'admin@filemanager.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin');
 
 -- Insert default admin settings
 INSERT INTO admin_settings (github_token, github_username) VALUES 

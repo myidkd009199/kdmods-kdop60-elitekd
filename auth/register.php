@@ -1,8 +1,8 @@
 <?php
-require_once '../config/config.php';
-require_once '../config/database.php';
-require_once '../classes/User.php';
-require_once '../classes/GitHubAPI.php';
+require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../classes/User.php';
+require_once __DIR__ . '/../classes/GitHubAPI.php';
 
 header('Content-Type: application/json');
 

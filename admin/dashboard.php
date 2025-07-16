@@ -1,8 +1,8 @@
 <?php
-require_once '../config/config.php';
-require_once '../includes/auth_check.php';
-require_once '../config/database.php';
-require_once '../classes/User.php';
+require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../includes/auth_check.php';
+require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../classes/User.php';
 
 requireAdmin();
 

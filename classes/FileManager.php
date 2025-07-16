@@ -1,6 +1,6 @@
 <?php
-require_once 'config/database.php';
-require_once 'classes/GitHubAPI.php';
+require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/GitHubAPI.php';
 
 class FileManager {
     private $conn;

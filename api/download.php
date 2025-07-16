@@ -1,8 +1,8 @@
 <?php
-require_once '../config/config.php';
-require_once '../includes/auth_check.php';
-require_once '../config/database.php';
-require_once '../classes/FileManager.php';
+require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../includes/auth_check.php';
+require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../classes/FileManager.php';
 
 if (!isLoggedIn()) {
     http_response_code(401);
